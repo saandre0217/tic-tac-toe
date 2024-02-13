@@ -26,8 +26,8 @@ const directionIndicatorObj = {
   ltr: [0, 4, 8],
   rtl: [2, 4, 6]
 }
-
-//function to show board in command line
+//*************************BOARD FUNCTIONS BEGIN **************************/
+//function to show board in command line 
 const printBoard = (boardArr) => {
   if(boardArr){
     console.log(` ${boardArr[0]} | ${boardArr[1]} | ${boardArr[2]} \n --------- \n ${boardArr[3]} | ${boardArr[4]} | ${boardArr[5]} \n --------- \n ${boardArr[6]} | ${boardArr[7]} | ${boardArr[8]}`)
@@ -41,7 +41,6 @@ const updateBoard = (letter, index, currentBoard) => {
   const newBoard = currentBoard.slice()
   newBoard.splice(index, 1, letter)
   if(letter === computerLetter){
-    
     console.log('Trixie has made her decision')
   } 
   return newBoard;
@@ -70,6 +69,9 @@ const loadingAnimation = () => {
   }, 100)
   return animationInterval
 }
+//*************************BOARD FUNCTIONS END **************************/
+
+//*************************COMPUTER PLAY FUNCTIONS BEGIN **************************/
 
 const getFirstMoveOptions = (playerFirstMoveInd, currentBoard) => {
   let options = [];
@@ -104,61 +106,81 @@ const getFirstMoveOptions = (playerFirstMoveInd, currentBoard) => {
   return options.flat()
 }
 
-//function for computer to play a move
-const handleComputerMove = (currentBoard) => {
-  let computerMoveInd;
-  
+const getWinningMove = (currentBoard) => {
+  console.log('winning functions')
+  for(let i = 0; i < currentBoard.length; i++){
+    if(currentBoard[i] === computerLetter){
+      console.log('i', currentBoard[i])
+      if (currentBoard[i] === currentBoard[i + 3] || currentBoard[i] === currentBoard[i + 6]){
+        if(typeof currentBoard[i + 3] === 'number'){
+          console.log('win col')
+          return handleWaitToUpdateBoard(updateBoard, computerLetter, currentBoard[i + 3], currentBoard)
+        }
+      } else if (currentBoard[i * 3] === currentBoard[(i * 3) + 1] || currentBoard[i * 3] === currentBoard[(i * 3) + 2]){
+        if(typeof currentBoard[(i * 3) + 1] === 'number'){
+          console.log('win row')
+          return handleWaitToUpdateBoard(updateBoard, computerLetter, currentBoard[(i * 3) + 1], currentBoard)
+        }
+      }
+    }
+  }
 
-if(playerMoves.length === 1){
-  const playerMoveInd = playerMoves[0]
-  const computerMoveOptions = getFirstMoveOptions(playerMoveInd, currentBoard)
-  const randomInd = Math.floor(Math.random() * computerMoveOptions.length)
-  computerMoveInd = computerMoveOptions[randomInd]
-  console.log('first play', playerMove, computerMoveOptions, computerMoveInd)
-  computerMoves.push(computerMoveInd)
-  console.log('computer moves', computerMoves)
-  return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
-} else {
-  const playerLastMoveInd = playerMoves[playerMoves.length - 1]
-
-  const computerLastMoveInd = computerMoves[computerMoves.length - 1]
-  const playerPrevMoveInd = playerMoves[playerMoves.length - 2]
-  console.log('p last', playerLastMoveInd, 'p prev', playerPrevMoveInd)
-  console.log('computer moves after first', computerMoves)
-
-  if(directionIndicatorObj.ltr.includes(playerLastMoveInd) && directionIndicatorObj.ltr.includes(playerPrevMoveInd)){
+  if(computerMoves.includes(0) || computerMoves.includes(8)){
+    console.log('win diag 1')
     return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
-  } else if(directionIndicatorObj.rtl.includes(playerLastMoveInd) && directionIndicatorObj.rtl.includes(playerPrevMoveInd)){
+  } else if(computerMoves.includes(2) || computerMoves.includes(6)){
+    console.log('win diag 2')
     return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
-  } else if(directionIndicatorObj.row.includes(playerPrevMoveInd - playerLastMoveInd)){
-    console.log('row')
-    return checkRows(playerLastMoveInd, currentBoard)
-  } else if(directionIndicatorObj.col.includes(playerPrevMoveInd - playerLastMoveInd)){
-    console.log('col')
-    return checkColumns(playerLastMoveInd, currentBoard)
   } else {
-    return checkColumns(computerLastMoveInd, currentBoard)
+    const computerLastMoveInd = computerMoves[computerMoves.length - 1]
+    const computerPrevMoveInd = computerMoves[computerMoves.length - 2]
+    console.log('c last', computerLastMoveInd, 'c prev', computerPrevMoveInd)
+    console.log('computer moves last', computerMoves)
+    console.log('last resort')
+    return getComputerMove(computerLastMoveInd, computerPrevMoveInd, currentBoard)
   }
 
 }
+
+
+const getComputerMove = (lastMoveInd, prevMoveInd, currentBoard) => {
+  if(directionIndicatorObj.ltr.includes(lastMoveInd) && directionIndicatorObj.ltr.includes(prevMoveInd)){
+    return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+  } else if(directionIndicatorObj.rtl.includes(lastMoveInd) && directionIndicatorObj.rtl.includes(prevMoveInd)){
+    return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+  } else if(directionIndicatorObj.row.includes(prevMoveInd - lastMoveInd)){
+    console.log('row')
+    return checkRows(lastMoveInd, currentBoard)
+  } else if(directionIndicatorObj.col.includes(prevMoveInd - lastMoveInd)){
+    console.log('col')
+    return checkColumns(lastMoveInd, currentBoard)
+  } else {
+    return currentBoard
+  }
 }
-checkDiagonals = (diagArr, currentBoard) => {
+
+
+const checkDiagonals = (diagArr, currentBoard) => {
   if(typeof currentBoard[diagArr[0]] === 'number'){
+    computerMoves.push(diagArr[0])
     return handleWaitToUpdateBoard(updateBoard, computerLetter, diagArr[0], currentBoard)
   } else if (typeof currentBoard[diagArr[1]] === 'number'){
+    computerMoves.push(diagArr[1])
     return handleWaitToUpdateBoard(updateBoard, computerLetter, diagArr[1], currentBoard)
   } else if(typeof currentBoard[diagArr[2]] === 'number'){
+    computerMoves.push(diagArr[2])
     return handleWaitToUpdateBoard(updateBoard, computerLetter, diagArr[2], currentBoard)
-  } else if(isNoWinner(currentBoard)){
-    console.log('you are very smart! looks like we both win!!')
+  } else {
+    return currentBoard
   } 
 }
 const findFirstEmptyMove = (currentBoard) => {
   for(let i = 0; i > currentBoard.length; i++){
     if(typeof currentBoard[i] === 'number'){
+      computerMoves.push(currentBoard[i])
       return handleWaitToUpdateBoard(updateBoard, computerLetter, currentBoard[i], currentBoard)
     } else {
-      console.log('you are very smart! looks like we both win!!')
+      return currentBoard
     }
   }
 }
@@ -173,9 +195,11 @@ const checkRows = (lastMove, currentBoard) => {
     // } else {
       if(typeof currentBoard[lastMove + 1] === 'number' ){
         computerMoveInd = lastMove + 1
+        computerMoves.push(computerMoveInd)
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else if(typeof currentBoard[lastMove + 2] === 'number' ){
         computerMoveInd = lastMove + 2
+        computerMoves.push(computerMoveInd)
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else {
         // if(isNoWinner(currentBoard)){
@@ -196,6 +220,7 @@ const checkRows = (lastMove, currentBoard) => {
     // } else {
       if(typeof currentBoard[lastMove + 1] === 'number'){
         computerMoveInd = lastMove + 1
+        computerMoves.push(computerMoveInd)
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else  if(typeof currentBoard[lastMove - 1] === 'number' ){
         computerMoveInd = lastMove - 1
@@ -205,8 +230,10 @@ const checkRows = (lastMove, currentBoard) => {
         //   console.log('you are very smart! looks like we both win!!')
         // } else 
         if(playerMoves.includes(0) || playerMoves.includes(8)){
+          computerMoves.push(computerMoveInd)
           return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
         } else if(playerMoves.includes(2) || playerMoves.includes(6)){
+          computerMoves.push(computerMoveInd)
           return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
         } else {
           return findFirstEmptyMove(currentBoard)
@@ -219,9 +246,11 @@ const checkRows = (lastMove, currentBoard) => {
     // } else {
       if(typeof currentBoard[lastMove - 1] === 'number'){
         computerMoveInd = lastMove - 1
+        computerMoves.push(computerMoveInd)
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else  if(typeof currentBoard[lastMove - 2] === 'number'){
         computerMoveInd = lastMove - 2
+        computerMoves.push(computerMoveInd)
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else {
         // if(isNoWinner(currentBoard)){
@@ -321,6 +350,9 @@ const checkColumns = (lastMove, currentBoard) => {
   } 
 }
 
+//*************************COMPUTER PLAY FUNCTIONS END **************************/
+
+//*************************HANDLER FUNCTIONS BEGIN **************************/
 
 //function to check if player or computer has won
 const handleWinner = (currentBoard) => {
@@ -328,7 +360,10 @@ const handleWinner = (currentBoard) => {
 
     //8 possible ways to win
     //columns & rows
-    for (var i = 0; i < 3; i += 1) {
+    if(isNoWinner(currentBoard)){
+      return 'both'
+    }
+    for (let i = 0; i < 3; i++) {
         if (currentBoard[i] === currentBoard[i + 3] && currentBoard[i] === currentBoard[i + 6]) {
             if(currentBoard[i] === computerLetter){
               winner = 'computer'
@@ -364,10 +399,33 @@ const handleWinner = (currentBoard) => {
       console.log('block1', winner)
         return winner
     }
-    
-    return 'none'
+  
+      return 'none'
+   
 }
 
+//function for computer to play a move
+const handleComputerMove = (currentBoard) => {
+  let computerMoveInd;
+if(computerMoves.length === 0){
+  const playerMoveInd = playerMoves[0]
+  const computerMoveOptions = getFirstMoveOptions(playerMoveInd, currentBoard)
+  const randomInd = Math.floor(Math.random() * computerMoveOptions.length)
+  computerMoveInd = computerMoveOptions[randomInd]
+  console.log('first play', playerMove, computerMoveOptions, computerMoveInd)
+  computerMoves.push(computerMoveInd)
+  console.log('computer moves', computerMoves)
+  return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
+} else if(computerMoves.length === 1){
+  const playerLastMoveInd = playerMoves[playerMoves.length - 1]
+  const playerPrevMoveInd = playerMoves[playerMoves.length - 2]
+  console.log('p last', playerLastMoveInd, 'p prev', playerPrevMoveInd)
+  console.log('computer moves after first', computerMoves)
+  return getComputerMove(playerLastMoveInd, playerPrevMoveInd, currentBoard)
+} else {
+ return getWinningMove(currentBoard)
+}
+}
 
 //function to handle player moves
 const handlePlayerMove = async (prevBoard) => {
@@ -391,7 +449,9 @@ const handlePlayerMove = async (prevBoard) => {
         handlePlayerMove(boardWComputerMove)
       } else if(winner === 'computer'){
         console.log('So sorry!! No one beats the Whiz!')
-      } else {
+      } else if(winner === 'both'){
+        console.log('looks like we are both smarty pants! 2 winners it is!')
+      }else {
         console.log(`ULTIMATE VICTORY FOR ${playerName.toUpperCase()}!!!!`)
       }
     
@@ -415,59 +475,3 @@ const handlePlayerMove = async (prevBoard) => {
 
   handlePlayerMove(emptyBoard)
 
-/**
- * if(currentBoard[lastMove + 3] && typeof currentBoard[lastMove + 3] === 'number' ){
-    computerMoveInd = lastMove + 3
-    return new Promise ((resolve) => {
-      setTimeout(() => {
-        resolve(updateBoard(computerLetter, computerMoveInd, currentBoard))
-      }, 3000)
-    })
-  } else if(currentBoard[lastMove + 1] && typeof currentBoard[lastMove + 1] === 'number'){
-    computerMoveInd = lastMove + 1
-    return new Promise ((resolve) => {
-      setTimeout(() => {
-        resolve(updateBoard(computerLetter, computerMoveInd, currentBoard))
-      }, 3000)
-    })
-  } else if(currentBoard[lastMove + 2] && typeof currentBoard[lastMove + 2] === 'number'){
-    computerMoveInd = lastMove + 2
-    return new Promise ((resolve) => {
-      setTimeout(() => {
-        resolve(updateBoard(computerLetter, computerMoveInd, currentBoard))
-      }, 3000)
-    })
-  } else if(currentBoard[lastMove + 4] && typeof currentBoard[lastMove + 4] === 'number'){
-    computerMoveInd = lastMove + 2
-    return new Promise ((resolve) => {
-      setTimeout(() => {
-        resolve(updateBoard(computerLetter, computerMoveInd, currentBoard))
-      }, 3000)
-    })
-    } else if(currentBoard[lastMove - 1] && typeof currentBoard[lastMove - 1] === 'number'){
-      computerMoveInd = lastMove - 1
-      return new Promise ((resolve) => {
-        setTimeout(() => {
-          resolve(updateBoard(computerLetter, computerMoveInd, currentBoard))
-        }, 3000)
-      })
-    } else if(currentBoard[lastMove - 2] && typeof currentBoard[lastMove - 2] === 'number'){
-      computerMoveInd = lastMove - 2
-      return new Promise ((resolve) => {
-        setTimeout(() => {
-          resolve(updateBoard(computerLetter, computerMoveInd, currentBoard))
-        }, 3000)
-      })
-    }
-    const possComputerMoves = [
-    [1, 2, 3, 6, 4, 8],
-    [0, 2, 4, 7],
-    [0, 1, 4, 6, 5, 8],
-    [0, 6, 4, 5],
-    [0, 8, 1, 7, 2, 6, 3, 5],
-    [2, 8, 4, 3],
-    [0, 3, 7, 8, 2, 4],
-    [1, 4, 6, 8],
-    [0, 4, 2, 5, 6, 7]
-  ]
- */
