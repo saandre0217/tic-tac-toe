@@ -20,6 +20,13 @@ const indexCoordObj = {
   8: [2, 2]
 }
 
+const directionIndicatorObj = {
+  row: [1, 2, -1, -2],
+  col: [3, 6, -3, -6],
+  ltr: [0, 4, 8],
+  rtl: [2, 4, 6]
+}
+
 //function to show board in command line
 const printBoard = (boardArr) => {
   if(boardArr){
@@ -70,62 +77,134 @@ const handleComputerMove = (currentBoard) => {
   
 
 if(playerMoves.length === 1){
-  const playerMoveInd = playerMoves[0]
+  //const playerMoveInd = playerMoves[0]
   const computerMoveOptions = currentBoard.slice()
-  computerMoveOptions.splice(playerMoveInd, 1)
+  const removalInd = playerMove - 1
+  computerMoveOptions.splice(removalInd, 1)
   const randomInd = Math.floor(Math.random() * computerMoveOptions.length)
   computerMoveInd = computerMoveOptions[randomInd]
+  console.log('first play', playerMove, removalInd, computerMoveOptions, computerMoveInd)
   computerMoves.push(computerMoveInd)
   console.log('computer moves', computerMoves)
   return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
 } else {
-  const lastMoveInd = computerMoves[computerMoves.length - 1]
-  return checkColumns(lastMoveInd, currentBoard)
+  const playerLastMoveInd = playerMoves[playerMoves.length - 1]
+
+  const computerLastMoveInd = computerMoves[computerMoves.length - 1]
+  const playerPrevMoveInd = playerMoves[playerMoves.length - 2]
+  console.log('p last', playerLastMoveInd, 'p prev', playerPrevMoveInd)
+  console.log('computer moves after first', computerMoves)
+
+  if(directionIndicatorObj.ltr.includes(playerLastMoveInd) && directionIndicatorObj.ltr.includes(playerPrevMoveInd)){
+    return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+  } else if(directionIndicatorObj.rtl.includes(playerLastMoveInd) && directionIndicatorObj.rtl.includes(playerPrevMoveInd)){
+    return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+  } else if(directionIndicatorObj.row.includes(playerPrevMoveInd - playerLastMoveInd)){
+    console.log('row')
+    return checkRows(playerLastMoveInd, currentBoard)
+  } else if(directionIndicatorObj.col.includes(playerPrevMoveInd - playerLastMoveInd)){
+    console.log('col')
+    return checkColumns(playerLastMoveInd, currentBoard)
+  } else {
+    return checkColumns(computerLastMoveInd, currentBoard)
+  }
 
 }
 }
-
-const blockPlayer = (playerLastMove, computerLastMove, currentBoard) => {
-
+checkDiagonals = (diagArr, currentBoard) => {
+  if(typeof currentBoard[diagArr[0]] === 'number'){
+    return handleWaitToUpdateBoard(updateBoard, computerLetter, diagArr[0], currentBoard)
+  } else if (typeof currentBoard[diagArr[1]] === 'number'){
+    return handleWaitToUpdateBoard(updateBoard, computerLetter, diagArr[1], currentBoard)
+  } else if(typeof currentBoard[diagArr[2]] === 'number'){
+    return handleWaitToUpdateBoard(updateBoard, computerLetter, diagArr[2], currentBoard)
+  } else if(isNoWinner(currentBoard)){
+    console.log('you are very smart! looks like we both win!!')
+  } 
+}
+const findFirstEmptyMove = (currentBoard) => {
+  for(let i = 0; i > currentBoard.length; i++){
+    if(typeof currentBoard[i] === 'number'){
+      return handleWaitToUpdateBoard(updateBoard, computerLetter, currentBoard[i], currentBoard)
+    } else {
+      console.log('you are very smart! looks like we both win!!')
+    }
+  }
 }
 
+const isNoWinner = (currentBoard) => {
+  return currentBoard.every((move) => typeof move === 'string' )
+}
 const checkRows = (lastMove, currentBoard) => {
   if(indexCoordObj[lastMove][1] === 0){
-    if(currentBoard[lastMove + 1] === playerLetter || currentBoard[lastMove + 2] === playerLetter){
-      console.log('need to check diagonal')
-    } else {
+    // if(currentBoard[lastMove + 1] === playerLetter || currentBoard[lastMove + 2] === playerLetter){
+    //   console.log('need to check diagonal')
+    // } else {
       if(typeof currentBoard[lastMove + 1] === 'number' ){
         computerMoveInd = lastMove + 1
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else if(typeof currentBoard[lastMove + 2] === 'number' ){
         computerMoveInd = lastMove + 2
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
+      } else {
+        // if(isNoWinner(currentBoard)){
+        //   console.log('you are very smart! looks like we both win!!')
+        // } else 
+        if(playerMoves.includes(0) || playerMoves.includes(8)){
+          return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+        } else if(playerMoves.includes(2) || playerMoves.includes(6)){
+          return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+        } else {
+          return findFirstEmptyMove(currentBoard)
+        }
       }
-    }
+    //}
   } else if(indexCoordObj[lastMove][1] === 1){
-    if(currentBoard[lastMove + 1] === playerLetter || currentBoard[lastMove - 1] === playerLetter){
-      console.log('need to check diagonal')
-    } else {
+    // if(currentBoard[lastMove + 1] === playerLetter || currentBoard[lastMove - 1] === playerLetter){
+    //   console.log('need to check diagonal')
+    // } else {
       if(typeof currentBoard[lastMove + 1] === 'number'){
         computerMoveInd = lastMove + 1
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else  if(typeof currentBoard[lastMove - 1] === 'number' ){
         computerMoveInd = lastMove - 1
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
+      } else {
+        // if(isNoWinner(currentBoard)){
+        //   console.log('you are very smart! looks like we both win!!')
+        // } else 
+        if(playerMoves.includes(0) || playerMoves.includes(8)){
+          return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+        } else if(playerMoves.includes(2) || playerMoves.includes(6)){
+          return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+        } else {
+          return findFirstEmptyMove(currentBoard)
+        }
       }
-  }
+  //}
   } else if(indexCoordObj[lastMove][1] === 2){
-    if(currentBoard[lastMove - 1] === playerLetter || currentBoard[lastMove - 2] === playerLetter){
-      console.log('need to check diagonal')
-    } else {
+    // if(currentBoard[lastMove - 1] === playerLetter || currentBoard[lastMove - 2] === playerLetter){
+    //   console.log('need to check diagonal')
+    // } else {
       if(typeof currentBoard[lastMove - 1] === 'number'){
         computerMoveInd = lastMove - 1
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else  if(typeof currentBoard[lastMove - 2] === 'number'){
         computerMoveInd = lastMove - 2
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
+      } else {
+        // if(isNoWinner(currentBoard)){
+        //   console.log('you are very smart! looks like we both win!!')
+        // } else 
+        if(playerMoves.includes(0) || playerMoves.includes(8)){
+          return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+        } else if(playerMoves.includes(2) || playerMoves.includes(6)){
+          return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+        } else {
+          return findFirstEmptyMove(currentBoard)
+        }
       }
-  }
+  //}
 }
 }
 
@@ -133,9 +212,9 @@ const checkColumns = (lastMove, currentBoard) => {
   console.log('computer last move', lastMove)
   if(indexCoordObj[lastMove][0] === 0){ //last move was on the top row
 
-    if(currentBoard[lastMove + 3] === playerLetter || currentBoard[lastMove + 6] === playerLetter ){
-      return checkRows(lastMove, currentBoard)
-    } else {
+    // if(currentBoard[lastMove + 3] === playerLetter || currentBoard[lastMove + 6] === playerLetter ){
+    //   return checkRows(lastMove, currentBoard)
+    // } else {
       if(typeof currentBoard[lastMove + 3] === 'number' ){
         computerMoveInd = lastMove + 3
         computerMoves.push(computerMoveInd)
@@ -146,13 +225,23 @@ const checkColumns = (lastMove, currentBoard) => {
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else {
         console.log('column check else block 1')
+        // if(isNoWinner(currentBoard)){
+        //   console.log('you are very smart! looks like we both win!!')
+        // } else 
+        if(playerMoves.includes(0) || playerMoves.includes(8)){
+          return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+        } else if(playerMoves.includes(2) || playerMoves.includes(6)){
+          return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+        } else {
+          return findFirstEmptyMove(currentBoard)
+        }
       }
-    }
+    // }
  
   } else if (indexCoordObj[lastMove][0] === 1) { //last move was on the middle row
-    if(currentBoard[lastMove + 3] === playerLetter || currentBoard[lastMove - 3] === playerLetter ){
-      return checkRows(lastMove, currentBoard)
-    } else {
+    // if(currentBoard[lastMove + 3] === playerLetter || currentBoard[lastMove - 3] === playerLetter ){
+    //   return checkRows(lastMove, currentBoard)
+    // } else {
       if(typeof currentBoard[lastMove + 3] === 'number'){
         computerMoveInd = lastMove + 3
         computerMoves.push(computerMoveInd)
@@ -163,12 +252,22 @@ const checkColumns = (lastMove, currentBoard) => {
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else {
         console.log('column check else block 2')
+        // if(isNoWinner(currentBoard)){
+        //   console.log('you are very smart! looks like we both win!!')
+        // } else 
+        if(playerMoves.includes(0) || playerMoves.includes(8)){
+          return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+        } else if(playerMoves.includes(2) || playerMoves.includes(6)){
+          return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+        } else {
+          return findFirstEmptyMove(currentBoard)
+        }
       }
-    }
+   // }
   } else if (indexCoordObj[lastMove][0] === 2) { //last move was on the last row
-    if(currentBoard[lastMove - 3] === playerLetter || currentBoard[lastMove - 6] === playerLetter ){
-      return checkRows(lastMove, currentBoard)
-    } else {
+    // if(currentBoard[lastMove - 3] === playerLetter || currentBoard[lastMove - 6] === playerLetter ){
+    //   return checkRows(lastMove, currentBoard)
+    // } else {
       if(typeof currentBoard[lastMove - 3] === 'number'){
         computerMoveInd = lastMove - 3
         computerMoves.push(computerMoveInd)
@@ -179,8 +278,15 @@ const checkColumns = (lastMove, currentBoard) => {
         return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
       } else {
         console.log('column check else block 3')
+        if(playerMoves.includes(0) || playerMoves.includes(8)){
+          return checkDiagonals(directionIndicatorObj.ltr, currentBoard)
+        } else if(playerMoves.includes(2) || playerMoves.includes(6)){
+          return checkDiagonals(directionIndicatorObj.rtl, currentBoard)
+        } else {
+          return findFirstEmptyMove(currentBoard)
+        }
       }
-    }
+    //}
   } 
 }
 
@@ -227,6 +333,7 @@ const handleWinner = (currentBoard) => {
       console.log('block1', winner)
         return winner
     }
+    
     return 'none'
 }
 
