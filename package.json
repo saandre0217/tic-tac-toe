@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "cli-color": "^2.0.3",
     "ora": "^8.0.1",
     "readline-sync": "^1.4.10"
   }
