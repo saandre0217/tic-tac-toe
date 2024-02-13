@@ -71,19 +71,50 @@ const loadingAnimation = () => {
   return animationInterval
 }
 
+const getFirstMoveOptions = (playerFirstMoveInd, currentBoard) => {
+  let options = [];
+  for(let i = 0; i < directionIndicatorObj.row.length; i++){
+    if(currentBoard[playerFirstMoveInd + directionIndicatorObj.row[i]]){
+      options.push([playerFirstMoveInd + directionIndicatorObj.row[i]])
+    }
+  }
+
+  for(let i = 0; i < directionIndicatorObj.col.length; i++){
+    if(currentBoard[playerFirstMoveInd + directionIndicatorObj.col[i]]){
+      options.push([playerFirstMoveInd + directionIndicatorObj.col[i]])
+    }
+  }
+
+  if(directionIndicatorObj.ltr.includes(playerFirstMoveInd)){
+    for(let i = 0; i < directionIndicatorObj.ltr.length; i++){
+      if(playerFirstMoveInd !== directionIndicatorObj.ltr[i]){
+        options.push(directionIndicatorObj.ltr[i])
+      }
+    }
+  }
+
+  if(directionIndicatorObj.rtl.includes(playerFirstMoveInd)){
+    for(let i = 0; i < directionIndicatorObj.rtl.length; i++){
+      if(playerFirstMoveInd !== directionIndicatorObj.rtl[i]){
+        options.push(directionIndicatorObj.rtl[i])
+      }
+    }
+  }
+
+  return options.flat()
+}
+
 //function for computer to play a move
 const handleComputerMove = (currentBoard) => {
   let computerMoveInd;
   
 
 if(playerMoves.length === 1){
-  //const playerMoveInd = playerMoves[0]
-  const computerMoveOptions = currentBoard.slice()
-  const removalInd = playerMove - 1
-  computerMoveOptions.splice(removalInd, 1)
+  const playerMoveInd = playerMoves[0]
+  const computerMoveOptions = getFirstMoveOptions(playerMoveInd, currentBoard)
   const randomInd = Math.floor(Math.random() * computerMoveOptions.length)
   computerMoveInd = computerMoveOptions[randomInd]
-  console.log('first play', playerMove, removalInd, computerMoveOptions, computerMoveInd)
+  console.log('first play', playerMove, computerMoveOptions, computerMoveInd)
   computerMoves.push(computerMoveInd)
   console.log('computer moves', computerMoves)
   return handleWaitToUpdateBoard(updateBoard, computerLetter, computerMoveInd, currentBoard)
