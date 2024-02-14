@@ -161,41 +161,52 @@ function handleWinning(currentBoard, player){
   return false;
 }
 
+//allows player to choose move, updates board, and ends game when winner is found
 const handlePlayerMove = async (prevBoard) => {
-  const moveIndex = playerMove 
   playerMove = rls.questionInt(clc.bgGreen(`Your Turn!`))
   if(playerMove > 9 || playerMove < 1 || !prevBoard.includes(playerMove)){
     console.log(`Oops! ${playerMove} isn't on the board. Try again!`)
     return handlePlayerMove(prevBoard)
   } else {
+    //update board with player move
     const boardWPlayerMove = updateBoard(playerLetter, playerMove - 1, prevBoard)
     printBoard(boardWPlayerMove)
-    console.log(clc.red(`Nice Choice! Let's see the quickest way to beat you...`))
-    const loading = loadingAnimation()
-    const boardWComputerMove = await handleComputerMove(boardWPlayerMove)
-    printBoard(boardWComputerMove)
     
+
+    //check for draw
+    let boardWComputerMove;
+    const emptySquares = getEmptyIndices(boardWPlayerMove)
+    if(emptySquares.length === 0){
+      console.log(clc.bgMagenta('Good game, my competent competitor! This is as close as you\'ll ever get to beating me!!'))
+    } else {
+      console.log(clc.red(`Nice Choice! Let's see the quickest way to beat you...`))
+      //computer's turn
+      loadingAnimation()
+      boardWComputerMove = await handleComputerMove(boardWPlayerMove)
+      printBoard(boardWComputerMove)
+
+      //check for winner
       if(handleWinning(boardWComputerMove, computerLetter)){
         console.log(clc.bgMagenta('My reign continues!!! Better luck never! Mwahahahah!'))
       } else if(handleWinning(boardWComputerMove, playerLetter)){
         console.log(clc.bgMagenta('How did this happen... I AM UNBEATABLE!'))
       } else {
-        const emptySquares = getEmptyIndices(boardWComputerMove)
-        if(emptySquares.length === 0){
-          console.log(clc.bgMagenta('Good game, my competent competitor! This is as close as you\'ll ever get to beating me!!'))
-        } else {
+        if(emptySquares.length > 0){
           handlePlayerMove(boardWComputerMove)
-        }
+        } 
       }
-    
+      
+    }
   }
 }
 
+//finds best spot for computer and updates board 
 const handleComputerMove = (currentBoard) => {
   const bestSpot = getBestMove(currentBoard, computerLetter).index - 1
-  
   return handleWaitToUpdateBoard(updateBoard, computerLetter, bestSpot, currentBoard)
 }
+
+//allows player to decide what letter they would like
 const getLetters = () => {
   playerLetter = rls.question(clc.cyan(`I am so excited to play with you, ${clc.bgWhite(playerName)}! Enter the letter you want to play with. Please enter either ${clc.bgWhite(' X ')} or ${clc.bgWhite(' O ')} `))
   if(playerLetter === 'x' || playerLetter === 'X'){
@@ -213,7 +224,8 @@ const getLetters = () => {
     return getLetters()
   }
 }
-//game play
+
+//begins game play
 const startGame = () => {
 
   playerName = rls.question(clc.cyan('Welcome to Trixie\'s Totally Tremendous Tic Tac Toe! What is your name?' ))
