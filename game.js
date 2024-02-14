@@ -1,17 +1,17 @@
 const rls = require('readline-sync');
 var clc = require("cli-color");
 
+//GLOBAL VARIABLES
 let playerName;
 let playerLetter;
-const emptyBoard = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 let playerMove;
-let playerMoves = []
-let computerMoves = [];
 let computerLetter;
+const emptyBoard = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-//*************************BOARD FUNCTIONS BEGIN **************************/
+//*************************BOARD SETUP & UPDATE FUNCTIONS **************************//
 const hl = clc.yellow('---------')
 const vl = clc.yellow('|')
+
 //function to show board in command line 
 const printBoard = (boardArr) => {
   if(boardArr){
@@ -27,7 +27,7 @@ const updateBoard = (letter, index, currentBoard) => {
   newBoard.splice(index, 1, letter)
   if(letter === computerLetter){
     console.log('I have made my decision')
-  } 
+  }
   return newBoard;
 }
 
@@ -36,8 +36,9 @@ const handleWaitToUpdateBoard = (cb, letter, index, currentBoard) => {
     setTimeout(() => {
       resolve(cb(letter, index, currentBoard))
     }, 3000)
-  }) 
+  })
 }
+
 //function for animation while the computer takes its turn
 const loadingAnimation = () => {
   let x = 0;
@@ -56,7 +57,26 @@ const loadingAnimation = () => {
   return animationInterval
 }
 
+//allows player to decide what letter they would like
+const getLetters = () => {
+  playerLetter = rls.question(clc.cyan(`I am so excited to play with you, ${clc.bgWhite(playerName)}! Enter the letter you want to play with. Please enter either ${clc.bgWhite(' X ')} or ${clc.bgWhite(' O ')} `))
+  if(playerLetter === 'x' || playerLetter === 'X'){
+    return {
+      playerLetter: clc.green('X'),
+      computerLetter: clc.red('O')
+    }
+  } else if (playerLetter == 'o' || playerLetter == 'O'){
+    return {
+      playerLetter: clc.green('O'),
+      computerLetter: clc.red('X')
+    }
+  } else {
+    console.log('That is not an X or O! Try Again!')
+    return getLetters()
+  }
+}
 
+//*************************STRATEGY FUNCTIONS **************************//
 
 function getBestMove(currentBoard, player){
   let emptySquares = getEmptyIndices(currentBoard);
@@ -122,12 +142,13 @@ function getBestMove(currentBoard, player){
 
 // returns the available spots on the board
 function getEmptyIndices(board){
-  //return  board.filter(s => typeof s === "number");
   return board.reduce((acc, curr) => {
     typeof curr === "number" ? acc.push(curr - 1) : acc;
     return acc
   }, [])
 }
+
+//*************************HANDLER FUNCTIONS **************************//
 
 // winning combinations using the board indexies for instace the first win could be 3 xes in a row
 function handleWinning(currentBoard, player){
@@ -206,24 +227,9 @@ const handleComputerMove = (currentBoard) => {
   return handleWaitToUpdateBoard(updateBoard, computerLetter, bestSpot, currentBoard)
 }
 
-//allows player to decide what letter they would like
-const getLetters = () => {
-  playerLetter = rls.question(clc.cyan(`I am so excited to play with you, ${clc.bgWhite(playerName)}! Enter the letter you want to play with. Please enter either ${clc.bgWhite(' X ')} or ${clc.bgWhite(' O ')} `))
-  if(playerLetter === 'x' || playerLetter === 'X'){
-    return {
-      playerLetter: clc.green('X'),
-      computerLetter: clc.red('O')
-    }
-  } else if (playerLetter == 'o' || playerLetter == 'O'){
-    return {
-      playerLetter: clc.green('O'),
-      computerLetter: clc.red('X')
-    }
-  } else {
-    console.log('That is not an X or O! Try Again!')
-    return getLetters()
-  }
-}
+
+
+//*************************BEGIN GAME FUNCTION**************************//
 
 //begins game play
 const startGame = () => {
