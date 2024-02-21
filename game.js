@@ -43,7 +43,6 @@ const handleWaitToUpdateBoard = (cb, letter, index, currentBoard) => {
 const loadingAnimation = () => {
   let x = 0;
   let count = 0;
-  //chars = ["⠙", "⠘", "⠰", "⠴", "⠤", "⠦", "⠆", "⠃", "⠋", "⠉"];
   chars = ['.', '..', '...', '....', ".....", '......']
   let animationInterval = setInterval(() => {
     process.stdout.write(`\rHmmm${chars[x++]} \r`);
@@ -77,8 +76,56 @@ const getLetters = () => {
 }
 
 //*************************STRATEGY FUNCTIONS **************************//
+const findBestMove = (player, movesArr) => {
+   //find the best move in the moves array
+   let bestMove;
+   if(player === computerLetter){
+     let bestScore = -1000000;
+     for(let i = 0; i < movesArr.length; i++){
+       if(movesArr[i].score > bestScore){
+         bestScore = movesArr[i].score;
+         bestMove = i;
+       }
+     }
+   }else{
+ 
+     let bestScore = 1000000;
+     for(let i = 0; i < movesArr.length; i++){
+       if(movesArr[i].score < bestScore){
+         bestScore = movesArr[i].score;
+         bestMove = i;
+       }
+     }
+   }
+   return movesArr[bestMove]
+}
 
-function getBestMove(currentBoard, player){
+const miniMax = (currentBoard, player, emptySquaresArr) => {
+  let moves = [];
+
+  // look at each available index and test if it is a good move for computer
+  for (let i = 0; i < emptySquaresArr.length; i++){
+    let move = {};
+  	move.index = currentBoard[emptySquaresArr[i]];
+
+    currentBoard[emptySquaresArr[i]] = player;
+
+    if (player == computerLetter){
+      let result = getBestMove(currentBoard, playerLetter);
+      move.score = result.score;
+    }
+    else{
+      let result = getBestMove(currentBoard, computerLetter);
+      move.score = result.score;
+    }
+
+    currentBoard[emptySquaresArr[i]] = move.index;
+
+    moves.push(move);
+  }
+  return moves
+}
+const getBestMove = (currentBoard, player) => {
   let emptySquares = getEmptyIndices(currentBoard);
 
   //figure out if move wins for computer or player or draws
@@ -92,56 +139,13 @@ function getBestMove(currentBoard, player){
   	return {score:0};
   }
 
-  let moves = [];
+  const moves = miniMax(currentBoard, player, emptySquares)
 
-  // look at each available index and test if it is a good move for computer
-  for (let i = 0; i < emptySquares.length; i++){
-    let move = {};
-  	move.index = currentBoard[emptySquares[i]];
-
-    currentBoard[emptySquares[i]] = player;
-
-    if (player == computerLetter){
-      let result = getBestMove(currentBoard, playerLetter);
-      move.score = result.score;
-    }
-    else{
-      let result = getBestMove(currentBoard, computerLetter);
-      move.score = result.score;
-    }
-
-    currentBoard[emptySquares[i]] = move.index;
-
-    moves.push(move);
-  }
-
-  //find the best move in the moves array
-  let bestMove;
-  if(player === computerLetter){
-    let bestScore = -1000000;
-    for(let i = 0; i < moves.length; i++){
-      if(moves[i].score > bestScore){
-        bestScore = moves[i].score;
-        bestMove = i;
-      }
-    }
-  }else{
-
-    let bestScore = 1000000;
-    for(let i = 0; i < moves.length; i++){
-      if(moves[i].score < bestScore){
-        bestScore = moves[i].score;
-        bestMove = i;
-      }
-    }
-  }
-
- 
-  return moves[bestMove]
+  return findBestMove(player, moves)
 }
 
 // returns the available spots on the board
-function getEmptyIndices(board){
+const getEmptyIndices = (board) => {
   return board.reduce((acc, curr) => {
     typeof curr === "number" ? acc.push(curr - 1) : acc;
     return acc
@@ -150,8 +154,8 @@ function getEmptyIndices(board){
 
 //*************************HANDLER FUNCTIONS **************************//
 
-// winning combinations using the board indexies for instace the first win could be 3 xes in a row
-function handleWinning(currentBoard, player){
+// winning combinations using the board indices for instance the first win could be 3 xes in a row
+const handleWinning = (currentBoard, player) => {
   for (let i = 0; i < 3; i++) {
     //column
       if (currentBoard[i] === currentBoard[i + 3] && currentBoard[i] === currentBoard[i + 6]) {
