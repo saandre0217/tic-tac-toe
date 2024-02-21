@@ -153,24 +153,7 @@ const getEmptyIndices = (board) => {
 }
 
 //*************************HANDLER FUNCTIONS **************************//
-
-// winning combinations using the board indices for instance the first win could be 3 xes in a row
-const handleWinning = (currentBoard, player) => {
-  for (let i = 0; i < 3; i++) {
-    //column
-      if (currentBoard[i] === currentBoard[i + 3] && currentBoard[i] === currentBoard[i + 6]) {
-          if(currentBoard[i] === player){
-            return true
-          } 
-    //row
-      } else if (currentBoard[i * 3] === currentBoard[(i * 3) + 1] && currentBoard[i * 3] === currentBoard[(i * 3) + 2]) {
-          if(currentBoard[i * 3] === player){
-            return true
-          } 
-          
-      }
-  }
-  //diagonals
+const isDiagonal = (currentBoard, player) => {
   if (currentBoard[0] === currentBoard[4] && currentBoard[0] === currentBoard[8]) {
     if(currentBoard[0] === player){
       return true
@@ -180,10 +163,41 @@ const handleWinning = (currentBoard, player) => {
     if(currentBoard[2] === player){
       return true
     } 
-   
   }
+}
 
-  return false;
+const isRow = (currentBoard, player) => {
+  for (let i = 0; i < 3; i++) {
+    if (currentBoard[i * 3] === currentBoard[(i * 3) + 1] && currentBoard[i * 3] === currentBoard[(i * 3) + 2]) {
+      if(currentBoard[i * 3] === player){
+        return true
+      } 
+    }
+  }
+  return false
+}
+
+const isColumn = (currentBoard, player) => {
+  for (let i = 0; i < 3; i++) {
+    if (currentBoard[i] === currentBoard[i + 3] && currentBoard[i] === currentBoard[i + 6]) {
+      if(currentBoard[i] === player){
+        return true
+      } 
+    }
+  }
+  return false
+}
+
+const handleWinning = (currentBoard, player) => {
+  if (isColumn(currentBoard, player)) {
+    return true
+  } else if (isRow(currentBoard, player)){
+    return true
+  } else if(isDiagonal(currentBoard, player)){
+    return true
+  } else {
+    return false;
+  }
 }
 
 //allows player to choose move, updates board, and ends game when winner is found
